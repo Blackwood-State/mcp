@@ -47,7 +47,7 @@ npx -y awal@2.12.2 x402 pay '<endpoint>' -X POST -d '<json body>' --max-amount <
 **MCP** (the same endpoints as tools, with a free demo credit for the first calls):
 
 ```bash
-claude mcp add blackwood -- npx -y @blackwood-state/mcp@0.1.0
+claude mcp add blackwood -- npx -y @blackwood-state/mcp@0.2.0
 ```
 
 Routes marked "(job)" answer `{ jobId, pollUrl }`: GET `pollUrl` (free) until `done` is true and read `output`. Every paid answer carries `next`, the paid call that usually continues the task.

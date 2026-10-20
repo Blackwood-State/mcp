@@ -1,0 +1,1250 @@
+{
+  "operator": "Blackwood State",
+  "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+  "network": "eip155:8453",
+  "tools": [
+    {
+      "name": "blackwood_airport_delays",
+      "service": "airport-delays",
+      "title": "Airport delays",
+      "description": "Use when you need airport delays, FAA ground stops or the airport status of a US airport right now, such as departure delays or closures. Do not use for the status of a flight number, airports outside the US or historical delays. Returns JSON with current US airport delays from the FAA: ground stops, ground delay programs with average and maximum delay, arrival and departure delays and closures, for all airports or one for 0.007 USDC per call. Typical response time 1500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "airport": {
+            "description": "US airport code to filter, e.g. SFO or KSFO (all airports with delays when omitted)",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{3,4}$"
+          }
+        }
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/airport-delays",
+      "kind": "sync",
+      "priceUsd": "0.007",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_altcoin_discovery",
+      "service": "altcoin-discovery",
+      "title": "Altcoin discovery on Base",
+      "description": "Use when you need altcoin discovery, new token listings or fresh Base tokens with real liquidity to research. Do not use for established coins, other chains or DEXs, price history, trading signals or token safety audits. Returns JSON with new tokens on Base that just got liquidity: Uniswap v3 pools created in the last hours against WETH or USDC, read on-chain from pool creation events, with price, depth and age for 0.005 USDC per call. Typical response time 3000 ms (p95). Category: Trading.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "hours": {
+            "description": "Look back this many hours for new pools, 1 to 72 (24 when omitted), e.g. 24",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 72
+          },
+          "minDepthUsd": {
+            "description": "Minimum USD on the WETH or USDC side of the pool (5000 when omitted), e.g. 10000",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000000
+          },
+          "limit": {
+            "description": "Tokens to return, 1 to 25 (10 when omitted), e.g. 5",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25
+          },
+          "quote": {
+            "description": "Quote side of the pool (any when omitted), e.g. \"WETH\"",
+            "type": "string",
+            "enum": [
+              "any",
+              "WETH",
+              "USDC"
+            ]
+          }
+        }
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/altcoin-discovery",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_audio_transcribe",
+      "service": "speech-to-text",
+      "title": "Speech to text",
+      "description": "Use when you need speech to text transcription or translation of an audio file at a public URL. Do not use for audio over 10 MB or speaker labels. Returns JSON with a Whisper transcription of an audio file: text, timed segments and language, or an English translation for 0.005 USDC per megabyte, up to 0.05 USDC per call (clients without upto pay the cap). Result in the same call (about 20000 ms); a status tool polls for free if it takes longer. Category: Media.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Public http(s) URL of the audio file, e.g. https://example.com/talk.mp3 (mp3, wav, ogg, m4a, webm; up to 10 MB)"
+          },
+          "task": {
+            "description": "transcribe keeps the spoken language; translate returns English (transcribe when omitted)",
+            "type": "string",
+            "enum": [
+              "transcribe",
+              "translate"
+            ]
+          },
+          "language": {
+            "description": "ISO 639-1 code of the spoken language, e.g. en or pt (detected when omitted)",
+            "type": "string",
+            "pattern": "^[a-z]{2}$"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/speech-to-text",
+      "kind": "async",
+      "pollRoute": "/v1/speech-to-text/jobs/:jobId",
+      "priceUsd": "0.05",
+      "scheme": "upto"
+    },
+    {
+      "name": "blackwood_company_dossier",
+      "service": "company-dossier",
+      "title": "Company research dossier",
+      "description": "Use when you need company research, due diligence or a quick analysis of a business from its website domain and optional ticker. Do not use for private financials, credit scores, people search or businesses without a website. Returns JSON with a company research dossier in one call: domain registration and DNS, email and website security, latest news and, with a ticker, SEC financials, priced below the separate calls for 0.03 USDC per call. Typical response time 8000 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 253,
+            "description": "Company website domain, e.g. stripe.com"
+          },
+          "ticker": {
+            "description": "Stock ticker for SEC financials, US filers only (no financials when omitted), e.g. AAPL",
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,9}$"
+          },
+          "name": {
+            "description": "Company name for the news search (taken from the domain when omitted), e.g. Stripe",
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "domain"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/company-dossier",
+      "kind": "sync",
+      "priceUsd": "0.03",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_crypto_news",
+      "service": "crypto-news",
+      "title": "Crypto news",
+      "description": "Use when you need crypto news or crypto market news headlines about a token or the market from recent articles. Do not use for prices, full article text, social media posts or news older than 72 hours. Returns JSON with the latest crypto news headlines from the last 72 hours (title, link, source, time, tone, people and organizations) about bitcoin, ethereum and blockchain news, from the GDELT news graph for 0.005 USDC per call. Typical response time 1500 ms (p95). Category: Search.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "description": "Narrow to one coin, chain or company, e.g. solana, xrp or coinbase (any crypto news when omitted)",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{2,30}$"
+          },
+          "hours": {
+            "description": "How far back to search, in hours (1-72, default 24)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 72
+          },
+          "limit": {
+            "description": "Most articles to return (1-50, default 20), newest first",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        }
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/crypto-news",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_domain_intel",
+      "service": "domain-intel",
+      "title": "Domain intelligence",
+      "description": "Use when you need a domain lookup, whois, dns records or certificate transparency data for osint, security or due diligence. Do not use for historical whois, registrant personal data (redacted by registries) or port and vulnerability scans. Returns JSON with domain intelligence: WHOIS/RDAP registration, DNS records (A, AAAA, MX, NS, TXT, CAA), SPF and DMARC, and TLS certificates from certificate transparency logs for 0.02 USDC per call. Typical response time 4000 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "maxLength": 254,
+            "pattern": "^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}\\.?$",
+            "description": "Domain name in ASCII (punycode for internationalized names), e.g. example.com"
+          },
+          "certificates": {
+            "description": "Include issued TLS certificates from Certificate Transparency (crt.sh); true when omitted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "domain"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/domain-intel",
+      "kind": "sync",
+      "priceUsd": "0.02",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_email_batch",
+      "service": "email-batch",
+      "title": "Email list check",
+      "description": "Use when you need bulk email validation, email list verification or to verify email lists before a send or import. Do not use for one address (email-check is cheaper), proving a mailbox exists (no SMTP probe) or sending email. Returns JSON checking up to 20 email addresses in one call: syntax, MX records, disposable, free and role flags, SPF, DMARC and a verdict each, plus counts by verdict for 0.02 USDC per call. Typical response time 2500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "emails": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 320
+            },
+            "description": "Email addresses to check, 1 to 20, e.g. [\"jane@example.com\", \"info@ietf.org\"]"
+          }
+        },
+        "required": [
+          "emails"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/email-batch",
+      "kind": "sync",
+      "priceUsd": "0.02",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_email_check",
+      "service": "email-check",
+      "title": "Email validation",
+      "description": "Use when you need email validation, to verify email addresses or validate email syntax and MX records before sending or signup. Do not use for confirming that the mailbox itself exists (no SMTP probe is done) or sending email. Returns JSON with email verification of one address: syntax, domain MX records, disposable, free and role-account flags, SPF and DMARC, and a verdict on whether the domain can receive mail for 0.005 USDC per call. Typical response time 800 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254,
+            "description": "Email address to check, e.g. jane@example.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/email-check",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_ens_lookup",
+      "service": "ens-lookup",
+      "title": "ENS name lookup",
+      "description": "Use when you need to resolve an ENS name to an address, reverse-resolve an address to its ENS name, or read an ENS avatar and profile records. Do not use for registering or renewing names, or non-ENS naming such as Solana SNS. Returns JSON with an ENS lookup on Ethereum in one call: the address of a name, the verified primary name of an address (reverse), the avatar and text records such as url, twitter and github for 0.005 USDC per call. Typical response time 2000 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "ENS name to resolve, e.g. vitalik.eth (send name or address, not both)",
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 255
+          },
+          "address": {
+            "description": "Ethereum address to reverse-resolve, e.g. 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 (send name or address, not both)",
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "texts": {
+            "description": "Text record keys to read (avatar, url, description, com.twitter, com.github and email when omitted), e.g. [\"url\", \"com.github\"]",
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,64}$"
+            }
+          }
+        }
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/ens-lookup",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_fx_history",
+      "service": "fx-history",
+      "title": "Historical exchange rates",
+      "description": "Use when you need historical exchange rates, a historical FX rate series, forex history or a currency trend. Do not use for rates older than 90 days, live quotes or crypto (one ECB rate per business day). Returns JSON with historical exchange rates: 90 days of daily ECB euro reference rates (free at ecb.europa.eu) for up to 10 currencies, rebased to any base as cross rates, with min, max and percent change for 0.005 USDC per call. Typical response time 1500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbols": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "description": "Currencies to return, ISO 4217, up to 10, e.g. [\"USD\", \"BRL\"]"
+          },
+          "base": {
+            "description": "Base currency, ISO 4217 (EUR when omitted), e.g. USD",
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$"
+          },
+          "days": {
+            "description": "Calendar days back from endDate, 1 to 90 (90 when omitted; ignored with startDate), e.g. 30",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 90
+          },
+          "startDate": {
+            "description": "First day, YYYY-MM-DD, within the last 90 days, e.g. 2026-09-01",
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "description": "Last day, YYYY-MM-DD (latest ECB day when omitted), e.g. 2026-09-30",
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": [
+          "symbols"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/fx-history",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_fx_rates",
+      "service": "fx-rates",
+      "title": "Currency exchange rates",
+      "description": "Use when you need currency exchange rates, fx rates or forex conversion of an amount between two currencies like EUR and GBP. Do not use for live trading quotes, intraday or crypto rates (ECB rates update once per business day). Returns JSON with currency exchange rates: official ECB euro reference FX rates (free at ecb.europa.eu) for about 30 currencies, rebased to any base as cross rates, with optional conversion for 0.005 USDC per call. Typical response time 1500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "base": {
+            "description": "Base currency, ISO 4217 (EUR when omitted), e.g. USD",
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$"
+          },
+          "symbols": {
+            "description": "Currencies to return, e.g. [\"BRL\", \"JPY\"] (all ECB currencies when omitted)",
+            "minItems": 1,
+            "maxItems": 40,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            }
+          },
+          "amount": {
+            "description": "Amount in the base currency to convert, e.g. 100",
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000
+          }
+        }
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/fx-rates",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_gas_fees",
+      "service": "gas-fees",
+      "title": "Gas price and fees",
+      "description": "Use when you need the current gas price, an ethereum gas fee estimate before a transaction, or to compare gas fees across chains. Do not use for gas units of a given transaction, gas history or chains beyond Ethereum, Base and Solana. Returns JSON with the gas price and gas fees on Ethereum and Base (base fee, slow, standard and fast EIP-1559 fees in gwei, transfer cost) plus Solana priority fees for 0.003 USDC per call. Typical response time 1500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "chains": {
+            "description": "Chains to read (ethereum, base and solana when omitted), e.g. [\"base\", \"ethereum\"]",
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ethereum",
+                "base",
+                "solana"
+              ]
+            }
+          }
+        }
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/gas-fees",
+      "kind": "sync",
+      "priceUsd": "0.003",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_headers_audit",
+      "service": "http-headers",
+      "title": "Security headers",
+      "description": "Use when you need an http security headers audit of a website or URL, with a grade and what to fix. Do not use for vulnerability scans, TLS cipher analysis or pages behind a login. Returns JSON auditing the HTTP security headers of a public URL (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, cookies) with a grade and fixes for 0.007 USDC per call. Typical response time 2500 ms (p95). Category: Infrastructure.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 2048,
+            "description": "Public http(s) URL to audit, e.g. https://example.com"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/http-headers",
+      "kind": "sync",
+      "priceUsd": "0.007",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_image_generate",
+      "service": "image-gen",
+      "title": "Image generation",
+      "description": "Use when you need image generation, an AI image generator or text to image from a prompt for illustrations, mockups or social posts. Do not use for image edits, specific sizes, photos of real people or more than one image per call. Returns JSON with an AI-generated image from a text prompt: a 1024x1024 JPEG made by FLUX.1 schnell on Workers AI, as base64 for 0.03 USDC per call. Result in the same call (about 10000 ms); a status tool polls for free if it takes longer. Category: Media.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2048,
+            "description": "What the image should show, in English, e.g. a lighthouse on a cliff at sunset, watercolor"
+          },
+          "steps": {
+            "description": "Diffusion steps (1-8, 4 when omitted); more steps, more detail",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          }
+        },
+        "required": [
+          "prompt"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/image-gen",
+      "kind": "async",
+      "pollRoute": "/v1/image-gen/jobs/:jobId",
+      "priceUsd": "0.03",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_llm_chat",
+      "service": "llm-chat",
+      "title": "LLM chat completion",
+      "description": "Use when you need an llm chat completion for summaries, extraction or classification from a cheap open model. Do not use for frontier models, tool calling or streaming. Returns JSON with a chat completion from IBM Granite 4.0 Micro on Workers AI, with token usage for 0.002 USDC per thousand tokens, up to 0.03 USDC per call (clients without upto pay the cap). Result in the same call (about 8000 ms); a status tool polls for free if it takes longer. Category: Inference.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "system",
+                    "user",
+                    "assistant"
+                  ],
+                  "description": "Who wrote the message"
+                },
+                "content": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32000,
+                  "description": "Message text"
+                }
+              },
+              "required": [
+                "role",
+                "content"
+              ]
+            },
+            "description": "Conversation so far, oldest first, e.g. [{\"role\": \"user\", \"content\": \"Summarize: ...\"}]"
+          },
+          "maxTokens": {
+            "description": "Maximum tokens to generate (1-4096, 512 when omitted); billed as requested",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "temperature": {
+            "description": "Sampling temperature (0-2), e.g. 0.2 for near-deterministic output",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2
+          }
+        },
+        "required": [
+          "messages"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/llm-chat",
+      "kind": "async",
+      "pollRoute": "/v1/llm-chat/jobs/:jobId",
+      "priceUsd": "0.03",
+      "scheme": "upto"
+    },
+    {
+      "name": "blackwood_news_briefing",
+      "service": "news-briefing",
+      "title": "News research briefing",
+      "description": "Use when you need a news briefing, a research summary of recent coverage or an analysis of what the press says about a topic or company. Do not use for breaking news, paywalled pages or one known article (use blackwood_webpage_markdown). Returns JSON with a research briefing on a topic in one call: up to 3 recent GDELT news articles, each read and summarized, with source and link, below the price of separate calls for 0.04 USDC per call. Typical response time 15000 ms (p95). Category: Search.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200,
+            "description": "Topic, company or person to research, e.g. stablecoin regulation"
+          },
+          "hours": {
+            "description": "How far back to look for news, in hours, 1 to 72 (24 when omitted), e.g. 48",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 72
+          },
+          "language": {
+            "description": "Language of the summaries (English when omitted), e.g. Portuguese",
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "topic"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/news-briefing",
+      "kind": "sync",
+      "priceUsd": "0.04",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_news_search",
+      "service": "news-headlines",
+      "title": "News headlines search",
+      "description": "Use when you need news articles or headlines from the last 72 hours about a topic, company or person. Do not use for full article text, paywalled sources, non-English coverage or news older than 72 hours. Returns JSON with recent news articles matching keywords: headline, URL, source, publish time, authors, tone, image and the people and organizations named, from GDELT for 0.008 USDC per call. Typical response time 600 ms (p95). Category: Search.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200,
+            "description": "Keywords to find in headlines, people and organizations, e.g. nvidia earnings (all words must match)"
+          },
+          "hours": {
+            "description": "How far back to look, in hours (1-72, 24 when omitted)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 72
+          },
+          "domain": {
+            "description": "Only articles from this source domain, e.g. reuters.com",
+            "type": "string",
+            "maxLength": 253
+          },
+          "limit": {
+            "description": "Maximum articles to return (1-50, 20 when omitted)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "sort": {
+            "description": "recent (default) or relevance",
+            "type": "string",
+            "enum": [
+              "recent",
+              "relevance"
+            ]
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/news-headlines",
+      "kind": "sync",
+      "priceUsd": "0.008",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_pdf_extract",
+      "service": "pdf-text",
+      "title": "PDF to text",
+      "description": "Use when you need to extract text from a pdf, pdf to text or document parsing for an LLM. Do not use for scanned PDFs (no OCR), password-protected files or files over 15 MB. Returns JSON with PDF text extraction: the text of each page (first 20 pages) plus title, author and producer metadata for 0.0025 USDC per page, up to 0.05 USDC per call (clients without upto pay the cap). Result in the same call (about 10000 ms); a status tool polls for free if it takes longer. Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Public http(s) URL of the PDF file, e.g. https://example.com/report.pdf (up to 15 MB)"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/pdf-text",
+      "kind": "async",
+      "pollRoute": "/v1/pdf-text/jobs/:jobId",
+      "priceUsd": "0.05",
+      "scheme": "upto"
+    },
+    {
+      "name": "blackwood_qrcode_generate",
+      "service": "qr-code",
+      "title": "QR code",
+      "description": "Use when you need a qr code generator for a URL, text, Wi-Fi or payment link as an SVG image. Do not use for reading or decoding an existing QR code, logos, colored codes or PNG output. Returns JSON with a QR code for your text or URL as SVG markup and an SVG data URL, with error correction level and border options, generated by the uqr library for 0.004 USDC per call. Typical response time 500 ms (p95). Category: Media.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Text or URL to encode, e.g. https://example.com (up to 2000 characters)"
+          },
+          "ecc": {
+            "description": "Error correction level: L 7%, M 15% (default), Q 25%, H 30%",
+            "type": "string",
+            "enum": [
+              "L",
+              "M",
+              "Q",
+              "H"
+            ]
+          },
+          "border": {
+            "description": "Quiet zone around the code, in modules (default 2)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "pixelSize": {
+            "description": "SVG units per module (default 10)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/qr-code",
+      "kind": "sync",
+      "priceUsd": "0.004",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_random_generate",
+      "service": "random",
+      "title": "Random numbers",
+      "description": "Use when you need a random number generator, dice rolls, a coin flip, a uuid or random bytes that no one can predict. Do not use for verifiable on-chain randomness (VRF) or reproducible seeded sequences. Returns JSON with cryptographically secure random values: integers in a range, dice rolls, coin flips, UUIDs or hex bytes, from the Workers Web Crypto CSPRNG for 0.005 USDC per call. Typical response time 500 ms (p95). Category: Infrastructure.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "integer",
+              "dice",
+              "coin",
+              "uuid",
+              "bytes"
+            ],
+            "description": "integer (count values between min and max), dice (count rolls of a die with sides faces), coin (count flips), uuid (count UUID v4) or bytes (length random bytes as hex)"
+          },
+          "count": {
+            "description": "How many values (1-100, default 1); ignored for bytes",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "min": {
+            "description": "integer: lowest value, inclusive (default 1)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          "max": {
+            "description": "integer: highest value, inclusive (default 100)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          "sides": {
+            "description": "dice: faces of the die (default 6)",
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 1000
+          },
+          "length": {
+            "description": "bytes: how many random bytes (1-256, default 32)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/random",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_sec_facts",
+      "service": "sec-facts",
+      "title": "SEC company financials",
+      "description": "Use when you need company financials from SEC filings, earnings or fundamentals of a US company by ticker for the last two years. Do not use for quarterly numbers, real-time prices, non-US companies or filings older than two years. Returns JSON with SEC company financials for a US stock ticker from 10-K filings on SEC EDGAR: annual revenue, net and operating income, diluted EPS, cash flow and the balance sheet for 0.02 USDC per call. Typical response time 300 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.\\-]{0,9}$",
+            "description": "Stock ticker of a company that files with the SEC, e.g. AAPL"
+          }
+        },
+        "required": [
+          "ticker"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/sec-facts",
+      "kind": "sync",
+      "priceUsd": "0.02",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_speech_synthesize",
+      "service": "text-to-speech",
+      "title": "Text to speech",
+      "description": "Use when you need text to speech, tts, a voice audio file or spoken narration of a short text. Do not use for voice cloning, a chosen voice, SSML or audio longer than about two minutes. Returns JSON with text to speech (TTS): your text read aloud as WAV voice audio (base64, 44.1 kHz mono) by MeloTTS on Workers AI, in English, Spanish, French, Chinese, Japanese or Korean for 0.023 USDC per call. Typical response time 8000 ms (p95). Category: Media.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Text to read aloud, e.g. Welcome to our store (up to 1000 characters)"
+          },
+          "lang": {
+            "description": "Speech language: en (default), es, fr, zh, ja or ko",
+            "type": "string",
+            "enum": [
+              "en",
+              "es",
+              "fr",
+              "zh",
+              "ja",
+              "ko"
+            ]
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/text-to-speech",
+      "kind": "sync",
+      "priceUsd": "0.023",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_text_sentiment",
+      "service": "sentiment",
+      "title": "Sentiment analysis",
+      "description": "Use when you need sentiment analysis, text sentiment or opinion mining of reviews, comments or headlines in English. Do not use for neutral or emotion labels, non-English text or aspect-level sentiment. Returns JSON with sentiment analysis of English text: a positive or negative label with a confidence score, from DistilBERT SST-2 on Workers AI, for one text or a batch of up to 20 for 0.004 USDC per call. Typical response time 1500 ms (p95). Category: Inference.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "description": "One English text to classify, e.g. The checkout was fast (up to 2000 characters)",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "texts": {
+            "description": "Or a batch of up to 20 English texts, e.g. [\"Great support\", \"Broken on arrival\"]",
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/sentiment",
+      "kind": "sync",
+      "priceUsd": "0.004",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_text_summarize",
+      "service": "summarize",
+      "title": "Summarize text",
+      "description": "Use when you need to summarize text such as an article, notes or a transcript into a short summary. Do not use for uRLs or PDFs (extract the text first), exact quotes or citations. Returns JSON with a concise summary of the plain text you send (up to 20,000 characters): one short paragraph and key bullet points, written by IBM Granite 4.0 Micro on Workers AI for 0.008 USDC per call. Typical response time 8000 ms (p95). Category: Inference.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 80,
+            "maxLength": 20000,
+            "description": "Plain text to summarize, e.g. an article or a transcript (80 to 20,000 characters)"
+          },
+          "maxBullets": {
+            "description": "Most bullet points to return (1-10, default 5)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "language": {
+            "description": "Language for the summary, e.g. English or Portuguese (default: the language of the text)",
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/summarize",
+      "kind": "sync",
+      "priceUsd": "0.008",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_text_translate",
+      "service": "translate",
+      "title": "Translate text",
+      "description": "Use when you need to translate text, a language translation or a text translation of a sentence or paragraph between two languages. Do not use for formatting that must be preserved, certified or legal translation, or speech (transcribe first). Returns JSON with text translation between about 100 languages by Meta M2M100 1.2B on Workers AI: the translated text with the source and target languages used for 0.012 USDC per call. Typical response time 5000 ms (p95). Category: Inference.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Text to translate, e.g. Pay only for the requests you make (up to 2000 characters)"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^[a-z]{2,3}$",
+            "description": "Target language as an ISO 639-1 code, e.g. es, fr, pt, de, ja, zh"
+          },
+          "from": {
+            "description": "Source language as an ISO 639-1 code (default en)",
+            "type": "string",
+            "pattern": "^[a-z]{2,3}$"
+          }
+        },
+        "required": [
+          "text",
+          "to"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/translate",
+      "kind": "sync",
+      "priceUsd": "0.012",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_timezone_convert",
+      "service": "timezone",
+      "title": "Time zones",
+      "description": "Use when you need timezone conversion between time zones, the current time in a zone or a utc offset with daylight saving. Do not use for places given only by city or address without an IANA zone name, or dates before 1970. Returns JSON converting a date and time between IANA time zones with daylight saving rules, with UTC offsets, abbreviations and the current time in each zone, from the IANA tz database for 0.003 USDC per call. Typical response time 500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "description": "Date and time to convert, ISO 8601: local wall time like 2026-10-17T15:30 (read in the from zone) or an instant with Z or an offset; now when omitted",
+            "type": "string",
+            "maxLength": 40
+          },
+          "from": {
+            "description": "IANA time zone of a local time, e.g. America/Sao_Paulo (UTC when omitted)",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "to": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "description": "IANA time zones to convert to, e.g. [\"Europe/London\", \"Asia/Tokyo\"]"
+          }
+        },
+        "required": [
+          "to"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/timezone",
+      "kind": "sync",
+      "priceUsd": "0.003",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_token_price",
+      "service": "token-price",
+      "title": "Token price on Base",
+      "description": "Use when you need a crypto token price or market data for a Base token, quoted from on-chain liquidity. Do not use for tokens that only trade off Base or on other DEXs (Aerodrome is not read), price history or OHLC. Returns JSON with the USD price of a token on Base computed on-chain from its deepest Uniswap v3 pool against USDC or WETH, with pool, fee tier and depth for 0.003 USDC per call. Typical response time 1200 ms (p95). Category: Trading.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 42,
+            "description": "Token on Base: contract address (0x...) or a symbol like WETH, cbBTC, AERO, DEGEN, VIRTUAL"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/token-price",
+      "kind": "sync",
+      "priceUsd": "0.003",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_wallet_balances",
+      "service": "wallet-balances",
+      "title": "Wallet balances on Base",
+      "description": "Use when you need a wallet balance, token balances or the ERC20 balance of an address on Base, read live from the chain. Do not use for ethereum mainnet or other chains, NFTs, transaction history or USD values. Returns JSON with the wallet balance of an address on Base: ETH and ERC20 token balances read on-chain in one block, 21 major tokens plus any you list for 0.004 USDC per call. Typical response time 1200 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "description": "Wallet address on Base, e.g. 0x5A6c77758820182484EA8DE614FC65423E80749a"
+          },
+          "tokens": {
+            "description": "Extra ERC20 token addresses on Base to check, e.g. [\"0x4200000000000000000000000000000000000006\"] (up to 20, beyond the 21 major ones)",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          },
+          "includeZero": {
+            "description": "Also list tokens with zero balance (false when omitted)",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "address"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/wallet-balances",
+      "kind": "sync",
+      "priceUsd": "0.004",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_wallet_portfolio",
+      "service": "wallet-portfolio",
+      "title": "Wallet portfolio and history",
+      "description": "Use when you need a multi-chain wallet balance, a wallet portfolio or wallet transaction history on Ethereum, Base or Solana. Do not use for uSD values, NFTs, DeFi positions, long-tail tokens or chains beyond Ethereum, Base and Solana. Returns JSON with a multi-chain wallet balance and transaction history: native and major-token balances on Ethereum, Base or Solana plus the latest transfers, without airdrop spam for 0.005 USDC per call. Typical response time 3000 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 44,
+            "description": "Wallet address: 0x... for Ethereum and Base, or a Solana address, e.g. 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+          },
+          "chains": {
+            "description": "Chains to read (ethereum and base for a 0x address, solana for a Solana address, when omitted), e.g. [\"base\"]",
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ethereum",
+                "base",
+                "solana"
+              ]
+            }
+          },
+          "historyLimit": {
+            "description": "Latest transfers to return per chain, 0 to 25 (10 when omitted), e.g. 5",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 25
+          }
+        },
+        "required": [
+          "address"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/wallet-portfolio",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_wallet_value",
+      "service": "wallet-value",
+      "title": "Wallet value in USD",
+      "description": "Use when you need a wallet portfolio value in USD, a wallet net worth or token balances with USD value for a 0x address. Do not use for solana wallets, transaction history, NFTs, DeFi positions or long-tail tokens. Returns JSON with a wallet's USD value on Ethereum and Base in one call: native and major-token balances priced on-chain from Uniswap v3 pools on Base, per-chain totals and the tokens left unpriced for 0.005 USDC per call. Typical response time 5000 ms (p95). Category: Trading.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "description": "Wallet address (0x...) on Ethereum and Base, e.g. 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+          },
+          "chains": {
+            "description": "Chains to value (ethereum and base when omitted), e.g. [\"base\"]",
+            "minItems": 1,
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ethereum",
+                "base"
+              ]
+            }
+          }
+        },
+        "required": [
+          "address"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/wallet-value",
+      "kind": "sync",
+      "priceUsd": "0.005",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_weather_forecast",
+      "service": "weather-forecast",
+      "title": "Weather forecast",
+      "description": "Use when you need a weather forecast, the current weather, temperature, rain or wind for the next hours or days at given coordinates. Do not use for historical weather, severe weather alerts or places given only by name (geocode first). Returns JSON with the weather forecast for a latitude and longitude: hourly temperature, rain and precipitation, wind, humidity and cloud cover for the next days, from MET Norway for 0.003 USDC per call. Typical response time 1500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Latitude in decimal degrees (WGS84), e.g. 59.9139 for Oslo, rounded to 4 decimals"
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Longitude in decimal degrees (WGS84), e.g. 10.7522 for Oslo, rounded to 4 decimals"
+          },
+          "hours": {
+            "description": "How many hours ahead to return (1-240, 48 when omitted); hourly at first, then every 6 hours",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 240
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/weather-forecast",
+      "kind": "sync",
+      "priceUsd": "0.003",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_webpage_markdown",
+      "service": "web-markdown",
+      "title": "Web page to Markdown",
+      "description": "Use when you need web page to markdown, url to markdown, to scrape a web page or extract content from a url for an LLM. Do not use for pages that need JavaScript to render, sit behind a login or paywall, or are not HTML (PDFs go to blackwood_pdf_extract). Returns JSON with the clean Markdown of a public web page (URL to Markdown, boilerplate stripped) plus its title, description, language, canonical URL and links for 0.01 USDC per call. Typical response time 2500 ms (p95). Category: Data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Public http(s) URL of the web page to read, e.g. https://example.com/article"
+          },
+          "maxChars": {
+            "description": "Maximum length of the returned markdown (500-100000 characters, 50000 when omitted)",
+            "type": "integer",
+            "minimum": 500,
+            "maximum": 100000
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/web-markdown",
+      "kind": "sync",
+      "priceUsd": "0.01",
+      "scheme": "exact"
+    },
+    {
+      "name": "blackwood_x402_check",
+      "service": "x402-check",
+      "title": "x402 endpoint check",
+      "description": "Use when you need an x402 endpoint check or x402 endpoint test, or to validate x402 endpoint listings before paying or integrating. Do not use for actually paying the endpoint, or endpoints behind authentication. Returns JSON with an x402 check of an endpoint without paying: whether it answers 402, its payment options (scheme, network, asset, amount, payTo), Bazaar metadata and problems found for 0.007 USDC per call. Typical response time 2500 ms (p95). Category: Infrastructure.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 2048,
+            "description": "Public http(s) URL of the x402 endpoint, e.g. https://x402.org/protected"
+          },
+          "method": {
+            "description": "HTTP method of the endpoint (GET when omitted)",
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST"
+            ]
+          },
+          "body": {
+            "description": "JSON body to send with POST, e.g. {\"url\": \"https://example.com\"} (no payment is ever attached)",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "origin": "https://x402-gateway.blackwoodstate8.workers.dev",
+      "method": "POST",
+      "route": "/v1/x402-check",
+      "kind": "sync",
+      "priceUsd": "0.007",
+      "scheme": "exact"
+    }
+  ]
+}

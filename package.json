@@ -1,0 +1,34 @@
+{
+  "name": "@blackwood-state/mcp",
+  "version": "0.2.0",
+  "description": "Blackwood State tools for AI agents over MCP: pay-per-call APIs (USDC on Base over x402) with a free starting credit, a spend cap per call and per day, and payment built in.",
+  "mcpName": "io.github.Blackwood-State/blackwood-state",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "blackwood-mcp": "dist/cli.js" },
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "exports": { ".": { "types": "./dist/server.d.ts", "import": "./dist/server.js" } },
+  "files": ["dist", "skills", "README.md"],
+  "keywords": ["mcp", "x402", "usdc", "base", "ai-agents", "pay-per-call", "crypto", "onchain"],
+  "homepage": "https://x402-gateway.blackwoodstate8.workers.dev",
+  "repository": { "type": "git", "url": "git+https://github.com/Blackwood-State/mcp.git" },
+  "bugs": { "url": "https://github.com/Blackwood-State/mcp/issues" },
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('src/catalog.json','dist/catalog.json')\"",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@x402/core": "2.28.0",
+    "@x402/evm": "2.28.0",
+    "@x402/fetch": "2.28.0",
+    "viem": "2.57.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}

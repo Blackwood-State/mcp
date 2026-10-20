@@ -1,0 +1,34 @@
+# Publica no npm com trusted publishing: o npm troca o token OIDC do Actions por uma credencial de uso único,
+# sem segredo guardado, e gera a proveniência (este repositório e este commit) porque o repositório é público.
+# O Trusted Publisher do pacote no npmjs.com aponta para Blackwood-State/mcp e para este arquivo (publish.yml).
+name: publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+      # Trusted publishing pede npm 11.5.1 ou mais novo.
+      - run: npm install -g npm@11.16.0
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: versão já publicada?
+        id: published
+        run: |
+          spec="$(node -p "require('./package.json').name + '@' + require('./package.json').version")"
+          if npm view "$spec" version > /dev/null 2>&1; then echo "skip=true" >> "$GITHUB_OUTPUT"; echo "$spec já está no npm"; fi
+      - if: steps.published.outputs.skip != 'true'
+        run: npm publish --access public
